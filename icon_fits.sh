@@ -375,9 +375,13 @@ EOF
     usage
     exit 1
   fi
+  
   # file input default value.
   local input_file
-  input_file="$1"
+  if [[ -z ${fflag} ]]; then
+    input_file="$1"
+  fi
+
   if [[ -z "${file_value}" ]]; then
     file_value="${input_file}"
   fi
@@ -398,7 +402,7 @@ EOF
 
   # 3> Handle type of input type.
   if [[ -n "${sflag}" ]]; then
-    local resize_file="${output_value}resize_${size_value}${EXTENSION}"
+    make_dir "${output_value}"
     make_image "${size_value}" "${file_value}" "${output_value}" "resize_${size_value}${EXTENSION}"
 
     # Compress
@@ -406,6 +410,7 @@ EOF
       compress_files "${EXTENSION}" "${output_value}"
     fi
 
+    local resize_file="${output_value}/resize_${size_value}${EXTENSION}"
     message "Create job done. ${resize_file}"
   else
     # @TODO: android.
