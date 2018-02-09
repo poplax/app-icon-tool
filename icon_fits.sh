@@ -12,8 +12,6 @@ declare -r TOOLNAME='AppIconFits'
 declare -r VERSION='0.1.0'
 declare -r EXTENSION='.png'
 
-# declare -r ICONNAME='iTunesArtwork'
-
 err() {
 	local red="\033[1;31m"
 	local normal="\033[0m"
@@ -115,20 +113,9 @@ make_watermark() {
 
 	local image_watermark="wmark_${image_file}"
 
-	# convert "${image_file}" -font GeorgiaB -pointsize 120 -compress Zip \
-	# convert "${image_file}" -font GeorgiaB -pointsize 120 -quality 3\
 	convert "${image_file}" -font GeorgiaB -pointsize 120 \
 		-draw "gravity south fill white text 0,0 '${subtitle}' fill DarkGray text 0,-2 '${subtitle}'" \
 		"${image_watermark}"
-
-	# set -x
-	# # echo ${image_file##*/}
-	# # echo ${image_file}
-	# local filename=$(basename ${image_watermark} .${image_watermark##*.})
-	# echo ${filename}
-	# exit -1
-
-	# convert -strip "${image_watermark}"
 
 	if [[ -f "${image_watermark}" ]]; then
 		echo "${image_watermark}"
@@ -161,23 +148,32 @@ make_image() {
 	if convert "${input_file}" -resize ${size} "${output_file}"; then
 		message "Created ${output_file} ."
 	fi
-
-	# local output_file
-	# local lsize
-	# for i in {1..3}; do
-	# 	lsize=$((${size} * ${i}))
-	# 	output_file="${output_dir}/${prefix_name}_${lsize}${EXTENSION}"
-
-	# 	if convert "${input_file}" -resize ${lsize} "${output_file}"; then
-	# 		message "Created ${output_file} ."
-	# 	fi
-	# done
-
 }
 
 compress_files() {
-	local file=''
-	#pngcrush -rem allb -brute -nofilecheck -blacken -reduce -ow ${file}
+	local file_ext
+	local file_dir
+	local file_name
+	file_ext="$1"
+	file_dir="$2"
+
+	[[ "$#" -ge 3 ]] &&
+		file_name="$3"
+
+	if [[ "${file_ext}" == ".png" ]]; then
+		message "Compress start ..."
+		if [[ -n "${file_name}" ]]; then
+			pngcrush -rem allb -brute -nofilecheck -blacken -reduce -ow ${file_name}
+		else
+			find ${file_dir} -name "*${file_ext}" |
+				xargs -I {} pngcrush -rem allb -brute -nofilecheck -blacken -reduce -ow {}
+		fi
+		message "Compress done ."
+	else
+		# @TODO: Compress .jpg ...
+		err "Compress Not support ${file_ext} yet."
+	fi
+
 }
 
 make_ios_icons() {
@@ -193,10 +189,10 @@ make_ios_icons() {
 	make_image "${app_store_1x}" "${origin_file}" "${output_dir}" "iTunesArtwork${EXTENSION}"
 
 	local suffix
-  local iphone_output="${output_dir}/iphone"
-  local ipad_output="${output_dir}/ipad"
-  make_dir "${iphone_output}"
-  make_dir "${ipad_output}"
+	local iphone_output="${output_dir}/iphone"
+	local ipad_output="${output_dir}/ipad"
+	make_dir "${iphone_output}"
+	make_dir "${ipad_output}"
 
 	local iphone_3x="20 29 40 60"
 	for m_size in ${iphone_3x}; do
@@ -227,20 +223,18 @@ main() {
 
 	# Check Required.
 	command -v convert >/dev/null 2>&1 ||
-		command -v pngcrush >/dev/null 2>&1 ||
 		{
 			cat <<EOF
 This Tool Depend On 
   'ImageMagick' [https://www.imagemagick.org/script/index.php].
-  'pngcrush' [https://pmt.sourceforge.io/pngcrush/]
 
 OSX:
     Homebrew install:
-    brew install imagemagick pngcrush
+    brew install imagemagick
 
 Linux:
     yum install:
-    yum install -y ImageMagick pngcrush
+    yum install -y ImageMagick
 
 EOF
 			exit -1
@@ -276,8 +270,7 @@ EOF
 			kflag='true'
 			# TODO: Android.
 			# kind_value=$(lowcase ${kind_value})
-
-			message "-${opt} ${kind_value}"
+			# message "-${opt} ${kind_value}"
 			;;
 
 		s)
@@ -292,7 +285,7 @@ EOF
 				err "Size option -${opt}, only accept +integer.\nyour input is '${size_value}'."
 				exit 1
 			fi
-			message "-${opt} ${OPTARG}"
+			# message "-${opt} ${OPTARG}"
 			;;
 
 		f)
@@ -301,7 +294,7 @@ EOF
 			check_option "${opt}" "${OPTARG}"
 
 			file_value="${OPTARG}"
-			message "-${opt} ${OPTARG}"
+			# message "-${opt} ${OPTARG}"
 			;;
 
 		t)
@@ -310,7 +303,7 @@ EOF
 			check_option "${opt}" "${OPTARG}"
 
 			text_value="${OPTARG}"
-			message "-${opt} ${OPTARG}"
+			# message "-${opt} ${OPTARG}"
 			;;
 
 		o)
@@ -321,12 +314,30 @@ EOF
 			output_value="${OPTARG}"
 
 			make_dir ${output_value}
-			message "-${opt} ${OPTARG}"
+			# message "-${opt} ${OPTARG}"
 			;;
 
 		c)
 			# PNG compress.
 			cflag='true'
+
+			command -v pngcrush >/dev/null 2>&1 ||
+				{
+					cat <<EOF
+This Tool Depend On 
+  'pngcrush' [https://pmt.sourceforge.io/pngcrush/]
+
+OSX:
+    Homebrew install:
+    brew install pngcrush
+
+Linux:
+    yum install:
+    yum install -y pngcrush
+
+EOF
+					exit -1
+				}
 			;;
 
 		v)
@@ -387,16 +398,27 @@ EOF
 
 	# 3> Handle type of input type.
 	if [[ -n "${sflag}" ]]; then
+		local resize_file="${output_value}resize_${size_value}${EXTENSION}"
 		make_image "${size_value}" "${file_value}" "${output_value}" "resize_${size_value}${EXTENSION}"
-		# echo 'Resize : output just one resized file.'
-	else
 
+		# Compress
+		if [[ -n "${cflag}" ]]; then
+			compress_files "${EXTENSION}" "${output_value}"
+		fi
+
+		message "Create job done. ${resize_file}"
+	else
 		# @TODO: android.
 		if [[ "${kind_value}" == "ios" ]]; then
 			make_ios_icons "${file_value}" "${output_value}"
 		fi
 
-		message "Create Job Done. you can find files at '${output_value}' directory."
+		# Compress
+		if [[ -n "${cflag}" ]]; then
+			compress_files "${EXTENSION}" "${output_value}"
+		fi
+
+		message "Create job done. you can find files at '${output_value}' directory."
 	fi
 
 	# Temp text image need to delete.
