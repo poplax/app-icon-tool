@@ -13,63 +13,63 @@ declare -r VERSION='0.1.0'
 declare -r EXTENSION='.png'
 
 err() {
-	local red="\033[1;31m"
-	local normal="\033[0m"
+  local red="\033[1;31m"
+  local normal="\033[0m"
 
-	local err_text
-	err_text="$1"
+  local err_text
+  err_text="$1"
 
-	echo -e "<${red}Error${normal}> ${err_text}" >&2
+  echo -e "<${red}Error${normal}> ${err_text}" >&2
 }
 
 message() {
-	local green="\033[1;32m"
-	local normal="\033[0m"
+  local green="\033[1;32m"
+  local normal="\033[0m"
 
-	local message_text
-	message_text="$1"
+  local message_text
+  message_text="$1"
 
-	echo -e "[${green}Message${normal}] ${message_text}"
+  echo -e "[${green}Message${normal}] ${message_text}"
 }
 
 lowcase() {
-	local word
-	word="$1"
+  local word
+  word="$1"
 
-	echo "${word}" | tr '[:upper:]' '[:lower:]'
+  echo "${word}" | tr '[:upper:]' '[:lower:]'
 }
 
 make_dir() {
-	local target_dir
-	target_dir="$1"
+  local target_dir
+  target_dir="$1"
 
-	if [[ -z "${target_dir}" ]]; then
-		err "Target dir can't be empty."
-		exit -1
-	fi
+  if [[ -z "${target_dir}" ]]; then
+    err "Target dir can't be empty."
+    exit -1
+  fi
 
-	if [[ ! -d "${target_dir}" ]]; then
-		mkdir -p "${target_dir}"
-	fi
+  if [[ ! -d "${target_dir}" ]]; then
+    mkdir -p "${target_dir}"
+  fi
 }
 
 check_option() {
-	local opt
-	local first
+  local opt
+  local first
 
-	opt="$1"
-	first="$2"
+  opt="$1"
+  first="$2"
 
-	if [[ ${first:0:1} == '-' ]]; then
+  if [[ ${first:0:1} == '-' ]]; then
 
-		err "\nOption -${opt}\nRequires argument error: can't start with '-'. "
-		exit -1
-	fi
+    err "\nOption -${opt}\nRequires argument error: can't start with '-'. "
+    exit -1
+  fi
 
 }
 
 usage() {
-	cat <<USAGE_DOC
+  cat <<USAGE_DOC
 Version: ${TOOLNAME}-v${VERSION}
 Copyright: © 2018 Poplax [linjiang9999<at>gmail.com]
 License: MIT <https://opensource.org/licenses/MIT>
@@ -103,128 +103,128 @@ USAGE_DOC
 
 # Create watermark.
 make_watermark() {
-	# message "make watermark."
+  # message "make watermark."
 
-	local subtitle
-	local image_file
+  local subtitle
+  local image_file
 
-	subtitle="$1"
-	image_file="$2"
+  subtitle="$1"
+  image_file="$2"
 
-	local image_watermark="wmark_${image_file}"
+  local image_watermark="wmark_${image_file}"
 
-	convert "${image_file}" -font GeorgiaB -pointsize 120 \
-		-draw "gravity south fill white text 0,0 '${subtitle}' fill DarkGray text 0,-2 '${subtitle}'" \
-		"${image_watermark}"
+  convert "${image_file}" -font GeorgiaB -pointsize 120 \
+    -draw "gravity south fill white text 0,0 '${subtitle}' fill DarkGray text 0,-2 '${subtitle}'" \
+    "${image_watermark}"
 
-	if [[ -f "${image_watermark}" ]]; then
-		echo "${image_watermark}"
-	fi
+  if [[ -f "${image_watermark}" ]]; then
+    echo "${image_watermark}"
+  fi
 
 }
 
 # Make image.
 make_image() {
-	local size
-	local input_file
-	local output_dir
-	local filename="default_file${EXTENSION}"
+  local size
+  local input_file
+  local output_dir
+  local filename="default_file${EXTENSION}"
 
-	size="$1"
-	input_file="$2"
-	output_dir="$3"
+  size="$1"
+  input_file="$2"
+  output_dir="$3"
 
-	if [[ "$#" -ge 4 ]]; then
+  if [[ "$#" -ge 4 ]]; then
 
-		filename="$4"
-	fi
+    filename="$4"
+  fi
 
-	if [[ "${size}" -lt 10 || "${size}" -gt 2048 ]]; then
-		err "Out of image size, min = 10, max = 2048."
-		exit -1
-	fi
+  if [[ "${size}" -lt 10 || "${size}" -gt 2048 ]]; then
+    err "Out of image size, min = 10, max = 2048."
+    exit -1
+  fi
 
-	local output_file="${output_dir}/${filename}"
-	if convert "${input_file}" -resize ${size} "${output_file}"; then
-		message "Created ${output_file} ."
-	fi
+  local output_file="${output_dir}/${filename}"
+  if convert "${input_file}" -resize ${size} "${output_file}"; then
+    message "Created ${output_file} ."
+  fi
 }
 
 compress_files() {
-	local file_ext
-	local file_dir
-	local file_name
-	file_ext="$1"
-	file_dir="$2"
+  local file_ext
+  local file_dir
+  local file_name
+  file_ext="$1"
+  file_dir="$2"
 
-	[[ "$#" -ge 3 ]] &&
-		file_name="$3"
+  [[ "$#" -ge 3 ]] &&
+    file_name="$3"
 
-	if [[ "${file_ext}" == ".png" ]]; then
-		message "Compress start ..."
-		if [[ -n "${file_name}" ]]; then
-			pngcrush -rem allb -brute -nofilecheck -blacken -reduce -ow ${file_name}
-		else
-			find ${file_dir} -name "*${file_ext}" |
-				xargs -I {} pngcrush -rem allb -brute -nofilecheck -blacken -reduce -ow {}
-		fi
-		message "Compress done ."
-	else
-		# @TODO: Compress .jpg ...
-		err "Compress Not support ${file_ext} yet."
-	fi
+  if [[ "${file_ext}" == ".png" ]]; then
+    message "Compress start ..."
+    if [[ -n "${file_name}" ]]; then
+      pngcrush -rem allb -brute -nofilecheck -blacken -reduce -ow ${file_name}
+    else
+      find ${file_dir} -name "*${file_ext}" |
+        xargs -I {} pngcrush -rem allb -brute -nofilecheck -blacken -reduce -ow {}
+    fi
+    message "Compress done ."
+  else
+    # @TODO: Compress .jpg ...
+    err "Compress Not support ${file_ext} yet."
+  fi
 
 }
 
 make_ios_icons() {
 
-	local origin_file
-	local output_dir
+  local origin_file
+  local output_dir
 
-	origin_file="$1"
-	output_dir="$2"
+  origin_file="$1"
+  output_dir="$2"
 
-	# Sizes value
-	local app_store_1x="1024"
-	make_image "${app_store_1x}" "${origin_file}" "${output_dir}" "iTunesArtwork${EXTENSION}"
+  # Sizes value
+  local app_store_1x="1024"
+  make_image "${app_store_1x}" "${origin_file}" "${output_dir}" "iTunesArtwork${EXTENSION}"
 
-	local suffix
-	local iphone_output="${output_dir}/iphone"
-	local ipad_output="${output_dir}/ipad"
-	make_dir "${iphone_output}"
-	make_dir "${ipad_output}"
+  local suffix
+  local iphone_output="${output_dir}/iphone"
+  local ipad_output="${output_dir}/ipad"
+  make_dir "${iphone_output}"
+  make_dir "${ipad_output}"
 
-	local iphone_3x="20 29 40 60"
-	for m_size in ${iphone_3x}; do
-		suffix=''
-		for i in {1..3}; do
-			[[ $i -gt 1 ]] && suffix="@${i}x"
-			make_image "$((${m_size} * ${i}))" "${origin_file}" "${iphone_output}" "iphone_${m_size}${suffix}${EXTENSION}"
-		done
-	done
+  local iphone_3x="20 29 40 60"
+  for m_size in ${iphone_3x}; do
+    suffix=''
+    for i in {1..3}; do
+      [[ $i -gt 1 ]] && suffix="@${i}x"
+      make_image "$((${m_size} * ${i}))" "${origin_file}" "${iphone_output}" "iphone_${m_size}${suffix}${EXTENSION}"
+    done
+  done
 
-	local ipad_2x="20 29 40 76"
-	for m_size in ${ipad_2x}; do
-		suffix=''
-		for i in {1..2}; do
-			[[ $i -gt 1 ]] && suffix="@${i}x"
-			make_image "$((${m_size} * ${i}))" "${origin_file}" "${ipad_output}" "ipad_${m_size}${suffix}${EXTENSION}"
-		done
-	done
+  local ipad_2x="20 29 40 76"
+  for m_size in ${ipad_2x}; do
+    suffix=''
+    for i in {1..2}; do
+      [[ $i -gt 1 ]] && suffix="@${i}x"
+      make_image "$((${m_size} * ${i}))" "${origin_file}" "${ipad_output}" "ipad_${m_size}${suffix}${EXTENSION}"
+    done
+  done
 
-	# iPad Pro
-	local ipad_pro_size="167"
-	make_image "${ipad_pro_size}" "${origin_file}" "${ipad_output}" "ipad_pro_${ipad_pro_size}${EXTENSION}"
+  # iPad Pro
+  local ipad_pro_size="167"
+  make_image "${ipad_pro_size}" "${origin_file}" "${ipad_output}" "ipad_pro_${ipad_pro_size}${EXTENSION}"
 
 }
 
 # main
 main() {
 
-	# Check Required.
-	command -v convert >/dev/null 2>&1 ||
-		{
-			cat <<EOF
+  # Check Required.
+  command -v convert >/dev/null 2>&1 ||
+    {
+      cat <<EOF
 This Tool Depend On 
   'ImageMagick' [https://www.imagemagick.org/script/index.php].
 
@@ -237,93 +237,93 @@ Linux:
     yum install -y ImageMagick
 
 EOF
-			exit -1
-		}
+      exit -1
+    }
 
-	# Check Argument
-	if [[ $# -lt 1 ]]; then
-		usage
-		exit 1
-	fi
+  # Check Argument
+  if [[ $# -lt 1 ]]; then
+    usage
+    exit 1
+  fi
 
-	# Default kflag='true' in this version.
-	local kflag='true'
-	local sflag=''
-	local fflag=''
-	local tflag=''
-	local oflag=''
-	local cflag=''
+  # Default kflag='true' in this version.
+  local kflag='true'
+  local sflag=''
+  local fflag=''
+  local tflag=''
+  local oflag=''
+  local cflag=''
 
-	# Default value
-	local size_value=''
-	local file_value=''
-	local text_value=''
-	local kind_value='ios'
-	local output_value='output'
+  # Default value
+  local size_value=''
+  local file_value=''
+  local text_value=''
+  local kind_value='ios'
+  local output_value='output'
 
-	local OPTIND
+  local OPTIND
 
-	while getopts ":cvhks:f:t:o:" opt; do
-		case ${opt} in
-		k)
-			# Output default image files.
-			kflag='true'
-			# TODO: Android.
-			# kind_value=$(lowcase ${kind_value})
-			# message "-${opt} ${kind_value}"
-			;;
+  while getopts ":cvhks:f:t:o:" opt; do
+    case ${opt} in
+    k)
+      # Output default image files.
+      kflag='true'
+      # TODO: Android.
+      # kind_value=$(lowcase ${kind_value})
+      # message "-${opt} ${kind_value}"
+      ;;
 
-		s)
-			# Resize.
-			sflag='true'
-			check_option "${opt}" "${OPTARG}"
+    s)
+      # Resize.
+      sflag='true'
+      check_option "${opt}" "${OPTARG}"
 
-			size_value="${OPTARG}"
+      size_value="${OPTARG}"
 
-			local re_int='^[0-9]+$'
-			if [[ ! "${size_value}" =~ $re_int ]]; then
-				err "Size option -${opt}, only accept +integer.\nyour input is '${size_value}'."
-				exit 1
-			fi
-			# message "-${opt} ${OPTARG}"
-			;;
+      local re_int='^[0-9]+$'
+      if [[ ! "${size_value}" =~ $re_int ]]; then
+        err "Size option -${opt}, only accept +integer.\nyour input is '${size_value}'."
+        exit 1
+      fi
+      # message "-${opt} ${OPTARG}"
+      ;;
 
-		f)
-			# Icon path.
-			fflag='true'
-			check_option "${opt}" "${OPTARG}"
+    f)
+      # Icon path.
+      fflag='true'
+      check_option "${opt}" "${OPTARG}"
 
-			file_value="${OPTARG}"
-			# message "-${opt} ${OPTARG}"
-			;;
+      file_value="${OPTARG}"
+      # message "-${opt} ${OPTARG}"
+      ;;
 
-		t)
-			# Watermark text.
-			tflag='true'
-			check_option "${opt}" "${OPTARG}"
+    t)
+      # Watermark text.
+      tflag='true'
+      check_option "${opt}" "${OPTARG}"
 
-			text_value="${OPTARG}"
-			# message "-${opt} ${OPTARG}"
-			;;
+      text_value="${OPTARG}"
+      # message "-${opt} ${OPTARG}"
+      ;;
 
-		o)
-			# Output directory.
-			oflag='true'
-			check_option "${opt}" "${OPTARG}"
+    o)
+      # Output directory.
+      oflag='true'
+      check_option "${opt}" "${OPTARG}"
 
-			output_value="${OPTARG}"
+      output_value="${OPTARG}"
 
-			make_dir ${output_value}
-			# message "-${opt} ${OPTARG}"
-			;;
+      make_dir ${output_value}
+      # message "-${opt} ${OPTARG}"
+      ;;
 
-		c)
-			# PNG compress.
-			cflag='true'
+    c)
+      # PNG compress.
+      cflag='true'
 
-			command -v pngcrush >/dev/null 2>&1 ||
-				{
-					cat <<EOF
+      command -v pngcrush >/dev/null 2>&1 ||
+        {
+          cat <<EOF
 This Tool Depend On 
   'pngcrush' [https://pmt.sourceforge.io/pngcrush/]
 
@@ -336,95 +336,95 @@ Linux:
     yum install -y pngcrush
 
 EOF
-					exit -1
-				}
-			;;
+          exit -1
+        }
+      ;;
 
-		v)
-			echo "${TOOLNAME}-v${VERSION}"
-			exit 1
-			;;
+    v)
+      echo "${TOOLNAME}-v${VERSION}"
+      exit 1
+      ;;
 
-		h)
-			usage
-			exit 1
-			;;
+    h)
+      usage
+      exit 1
+      ;;
 
-		:)
-			err "Option -${OPTARG} requires an argument."
-			usage
-			exit 1
-			;;
+    :)
+      err "Option -${OPTARG} requires an argument."
+      usage
+      exit 1
+      ;;
 
-		?)
-			err "Undefined Option -${OPTARG}"
-			usage
-			exit 1
-			;;
+    ?)
+      err "Undefined Option -${OPTARG}"
+      usage
+      exit 1
+      ;;
 
-		esac
+    esac
 
-	done
-	shift $((${OPTIND} - 1))
+  done
+  shift $((${OPTIND} - 1))
 
-	# Create Logic ----
+  # Create Logic ----
 
-	# 1> Handle file input.
-	if [[ -z "${fflag}" && "$#" -eq 0 ]]; then
-		err "No input file given."
-		usage
-		exit 1
-	fi
-	# file input default value.
-	local input_file
-	input_file="$1"
-	if [[ -z "${file_value}" ]]; then
-		file_value="${input_file}"
-	fi
+  # 1> Handle file input.
+  if [[ -z "${fflag}" && "$#" -eq 0 ]]; then
+    err "No input file given."
+    usage
+    exit 1
+  fi
+  # file input default value.
+  local input_file
+  input_file="$1"
+  if [[ -z "${file_value}" ]]; then
+    file_value="${input_file}"
+  fi
 
-	# 2> Handle subtitle text.
-	if [[ -n "${tflag}" ]]; then
-		local watermark_file
-		watermark_file=$(make_watermark "${text_value}" "${file_value}")
+  # 2> Handle subtitle text.
+  if [[ -n "${tflag}" ]]; then
+    local watermark_file
+    watermark_file=$(make_watermark "${text_value}" "${file_value}")
 
-		if [[ -z "${watermark_file}" ]]; then
+    if [[ -z "${watermark_file}" ]]; then
 
-			err "Test watermark make failed."
-			exit 1
-		fi
+      err "Test watermark make failed."
+      exit 1
+    fi
 
-		file_value="${watermark_file}"
-	fi
+    file_value="${watermark_file}"
+  fi
 
-	# 3> Handle type of input type.
-	if [[ -n "${sflag}" ]]; then
-		local resize_file="${output_value}resize_${size_value}${EXTENSION}"
-		make_image "${size_value}" "${file_value}" "${output_value}" "resize_${size_value}${EXTENSION}"
+  # 3> Handle type of input type.
+  if [[ -n "${sflag}" ]]; then
+    local resize_file="${output_value}resize_${size_value}${EXTENSION}"
+    make_image "${size_value}" "${file_value}" "${output_value}" "resize_${size_value}${EXTENSION}"
 
-		# Compress
-		if [[ -n "${cflag}" ]]; then
-			compress_files "${EXTENSION}" "${output_value}"
-		fi
+    # Compress
+    if [[ -n "${cflag}" ]]; then
+      compress_files "${EXTENSION}" "${output_value}"
+    fi
 
-		message "Create job done. ${resize_file}"
-	else
-		# @TODO: android.
-		if [[ "${kind_value}" == "ios" ]]; then
-			make_ios_icons "${file_value}" "${output_value}"
-		fi
+    message "Create job done. ${resize_file}"
+  else
+    # @TODO: android.
+    if [[ "${kind_value}" == "ios" ]]; then
+      make_ios_icons "${file_value}" "${output_value}"
+    fi
 
-		# Compress
-		if [[ -n "${cflag}" ]]; then
-			compress_files "${EXTENSION}" "${output_value}"
-		fi
+    # Compress
+    if [[ -n "${cflag}" ]]; then
+      compress_files "${EXTENSION}" "${output_value}"
+    fi
 
-		message "Create job done. you can find files at '${output_value}' directory."
-	fi
+    message "Create job done. you can find files at '${output_value}' directory."
+  fi
 
-	# Temp text image need to delete.
-	if [[ -n "${tflag}" ]]; then
-		rm -f ${file_value}
-	fi
+  # Temp text image need to delete.
+  if [[ -n "${tflag}" ]]; then
+    rm -f ${file_value}
+  fi
 }
 
 main "$@"
