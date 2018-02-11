@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# App icon fits
+# App icon fitter
 # A tool for creating images for application icons.
 # Create by Poplax [linjiang9999<at>gmail.com]
 # Date 2018-02-06
@@ -8,7 +8,7 @@
 
 set -eu
 
-declare -r TOOLNAME='AppIconFits'
+declare -r TOOLNAME='AppIconFitter'
 declare -r VERSION='0.1.0'
 declare -r EXTENSION='.png'
 
@@ -83,20 +83,23 @@ Usage:
     -k	Auto create all size of App icon. note: only support 'iOS' platform, this version.
     -s	Specify size, note: Only create an icon of the specified size.
 
+    -c  Compress files.
     -v	Software current version.
     -h	Help.
 
 Example	:
     
-    + Resize 120(px) of the icon(app_icon_1024.png), add subtitle : 'DemoApp' as watermark, create one icon to the 'output' directory:
+    + Resize 120(px) of the icon(gray_1024.png), add subtitle : 'DemoApp' as watermark, create one icon to the 'output' directory:
     1> 
-    $0 -s 120 -f app_icon_1024.png -o output -t "DemoApp"
+    $0 -s 120 -f gray_1024.png -o iconFitResize -t "DemoApp"
     2> 
-    $0 -s 120 -o output -t "DemoApp" app_icon_1024.png
+    $0 -c -s 120 -o iconFitResize -t "DemoApp" gray_1024.png
 
-    + create all size of the platform support.
+    + create all size of the platform(default: iOS) support.
     1> 
-    $0 -k -f app_icon_1024.png -o output 
+    $0 -k -f blue_1024.png -o iconFit
+    2> 
+    $0 -co iconFitCompress blue_1024.png
     
 USAGE_DOC
 }
@@ -177,7 +180,6 @@ compress_files() {
 }
 
 make_ios_icons() {
-
   local origin_file
   local output_dir
 
