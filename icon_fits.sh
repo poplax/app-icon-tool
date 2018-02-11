@@ -189,17 +189,13 @@ make_ios_icons() {
   make_image "${app_store_1x}" "${origin_file}" "${output_dir}" "iTunesArtwork${EXTENSION}"
 
   local suffix
-  local iphone_output="${output_dir}/iphone"
-  local ipad_output="${output_dir}/ipad"
-  make_dir "${iphone_output}"
-  make_dir "${ipad_output}"
 
   local iphone_3x="20 29 40 60"
   for m_size in ${iphone_3x}; do
     suffix=''
     for i in {1..3}; do
       [[ $i -gt 1 ]] && suffix="@${i}x"
-      make_image "$((${m_size} * ${i}))" "${origin_file}" "${iphone_output}" "iphone_${m_size}${suffix}${EXTENSION}"
+      make_image "$((${m_size} * ${i}))" "${origin_file}" "${output_dir}" "iphone_${m_size}${suffix}${EXTENSION}"
     done
   done
 
@@ -208,13 +204,140 @@ make_ios_icons() {
     suffix=''
     for i in {1..2}; do
       [[ $i -gt 1 ]] && suffix="@${i}x"
-      make_image "$((${m_size} * ${i}))" "${origin_file}" "${ipad_output}" "ipad_${m_size}${suffix}${EXTENSION}"
+      make_image "$((${m_size} * ${i}))" "${origin_file}" "${output_dir}" "ipad_${m_size}${suffix}${EXTENSION}"
     done
   done
 
   # iPad Pro
   local ipad_pro_size="167"
-  make_image "${ipad_pro_size}" "${origin_file}" "${ipad_output}" "ipad_pro_${ipad_pro_size}${EXTENSION}"
+  make_image "${ipad_pro_size}" "${origin_file}" "${output_dir}" "ipad_pro_${ipad_pro_size}${EXTENSION}"
+
+}
+
+make_ios_config() {
+  local config_file='Contents.json'
+
+  local output_dir
+  output_dir="$1"
+
+  cat <<CONFIG_IOS >"${output_dir}/${config_file}"
+{
+  "images" : [
+    {
+      "size" : "20x20",
+      "idiom" : "iphone",
+      "filename" : "iphone_20@2x.png",
+      "scale" : "2x"
+    },
+    {
+      "size" : "20x20",
+      "idiom" : "iphone",
+      "filename" : "iphone_20@3x.png",
+      "scale" : "3x"
+    },
+    {
+      "size" : "29x29",
+      "idiom" : "iphone",
+      "filename" : "iphone_29@2x.png",
+      "scale" : "2x"
+    },
+    {
+      "size" : "29x29",
+      "idiom" : "iphone",
+      "filename" : "iphone_29@3x.png",
+      "scale" : "3x"
+    },
+    {
+      "size" : "40x40",
+      "idiom" : "iphone",
+      "filename" : "iphone_40@2x.png",
+      "scale" : "2x"
+    },
+    {
+      "size" : "40x40",
+      "idiom" : "iphone",
+      "filename" : "iphone_40@3x.png",
+      "scale" : "3x"
+    },
+    {
+      "size" : "60x60",
+      "idiom" : "iphone",
+      "filename" : "iphone_60@2x.png",
+      "scale" : "2x"
+    },
+    {
+      "size" : "60x60",
+      "idiom" : "iphone",
+      "filename" : "iphone_60@3x.png",
+      "scale" : "3x"
+    },
+    {
+      "size" : "20x20",
+      "idiom" : "ipad",
+      "filename" : "ipad_20.png",
+      "scale" : "1x"
+    },
+    {
+      "size" : "20x20",
+      "idiom" : "ipad",
+      "filename" : "ipad_20@2x.png",
+      "scale" : "2x"
+    },
+    {
+      "size" : "29x29",
+      "idiom" : "ipad",
+      "filename" : "ipad_29.png",
+      "scale" : "1x"
+    },
+    {
+      "size" : "29x29",
+      "idiom" : "ipad",
+      "filename" : "ipad_29@2x.png",
+      "scale" : "2x"
+    },
+    {
+      "size" : "40x40",
+      "idiom" : "ipad",
+      "filename" : "ipad_40.png",
+      "scale" : "1x"
+    },
+    {
+      "size" : "40x40",
+      "idiom" : "ipad",
+      "filename" : "ipad_40@2x.png",
+      "scale" : "2x"
+    },
+    {
+      "size" : "76x76",
+      "idiom" : "ipad",
+      "filename" : "ipad_76.png",
+      "scale" : "1x"
+    },
+    {
+      "size" : "76x76",
+      "idiom" : "ipad",
+      "filename" : "ipad_76@2x.png",
+      "scale" : "2x"
+    },
+    {
+      "size" : "83.5x83.5",
+      "idiom" : "ipad",
+      "filename" : "ipad_pro_167.png",
+      "scale" : "2x"
+    },
+    {
+      "size" : "1024x1024",
+      "idiom" : "ios-marketing",
+      "filename" : "iTunesArtwork.png",
+      "scale" : "1x"
+    }
+  ],
+  "info" : {
+    "version" : 1,
+    "author" : "xcode"
+  }
+}
+CONFIG_IOS
 
 }
 
@@ -375,7 +498,7 @@ EOF
     usage
     exit 1
   fi
-  
+
   # file input default value.
   local input_file
   if [[ -z ${fflag} ]]; then
@@ -415,7 +538,10 @@ EOF
   else
     # @TODO: android.
     if [[ "${kind_value}" == "ios" ]]; then
+      output_value="${output_value}/AppIcon.appiconset"
+      make_dir "${output_value}"
       make_ios_icons "${file_value}" "${output_value}"
+      make_ios_config "${output_value}"
     fi
 
     # Compress
