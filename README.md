@@ -2,11 +2,11 @@
 
 AppIconFiter is a tool of create different size images for the App.
 
-this version(0.1.0) only surpport 'iOS' App.
+this version(0.1.0) only support 'iOS' App.
 
 ## Requirement
 
-- MacOSX or Linux (Fedora, Fedora, SUSE...)
+- MacOSX or Linux (Fedora, RedHat, SUSE...)
 - [ImageMagick](http://www.imagemagick.org/)
 - [pngcrash](https://pmt.sourceforge.io/pngcrush/)
 
