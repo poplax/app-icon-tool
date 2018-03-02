@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#
+# App icon mark
+# A tool of application icon, make version info to app icon. when tool(xcodebuild) build.
+# Create by Poplax [linjiang9999<at>gmail.com]
+# Date 2018-03-02
+#
+
+set -eu
+
+
