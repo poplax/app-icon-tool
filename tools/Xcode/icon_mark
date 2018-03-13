@@ -1,11 +1,275 @@
 #!/usr/bin/env bash
 #
-# App icon mark
+# App icon mark for "OSX".
 # A tool of application icon, make version info to app icon. when tool(xcodebuild) build.
+# Test: Xcode
+#
 # Create by Poplax [linjiang9999<at>gmail.com]
 # Date 2018-03-02
 #
 
-set -eu
+# set -eu
 
+WORKPATH=$(dirname "$0")
+pushd "${WORKPATH}" >/dev/null
+WORKPATH=$(pwd -P)
+popd >/dev/null
 
+declare -r VERSION='0.1.0'
+declare -r LIBDIR='lib'
+declare -r LIBKIT_PATH="${WORKPATH}/${LIBDIR}/dev_kit.sh"
+
+[[ ! -f "${LIBKIT_PATH}" ]] && echo "'${LIBKIT_PATH}' is not exsit." && exit -1
+. ${LIBKIT_PATH}
+
+# Check requirement.
+check_requirement() {
+    command -v convert >/dev/null 2>&1 ||
+        {
+            cat <<EOF
+ImageMagick is not install.
+The Tool Depend On:
+    'ImageMagick' [https://www.imagemagick.org/script/index.php].
+OSX:
+    Homebrew install:
+    brew install imagemagick
+EOF
+            return 1
+        }
+
+    command -v git >/dev/null 2>&1 ||
+        {
+            cat <<EOF
+Git is not install.
+Install:
+xcode-select --install
+EOF
+            return 1
+        }
+
+    return 0
+}
+
+#######################################
+# Icon mark app info
+# Arguments:
+#   base_file: icon filename
+#   tmp_path: temp file path
+#   dest_path: dest file path
+#   caption: mark caption
+# Returns:
+#   None
+#######################################
+icon_mark_info() {
+
+    if [[ "$#" -lt 4 ]]; then
+        err "icon mark info arguments error."
+        exit 1
+    fi
+
+    local base_file
+    local tmp_path
+    local dest_path
+    local caption
+    base_file="$1"
+    tmp_path="$2"
+    dest_path="$3"
+    caption="$4"
+
+    if [[ ! -e "${base_file}" ]]; then
+        err "error: file does not exist: '${base_file}'"
+        exit -1
+    fi
+
+    if [[ -z "${tmp_path}" ]]; then
+        err "error: tmp_path does not exist: '${tmp_path}'"
+        exit -1
+    fi
+
+    if [[ -z "${dest_path}" ]]; then
+        err "error: dest_path does not exist: '${dest_path}'"
+        exit -1
+    fi
+
+    local icon_name=$(basename "${base_file}")
+    local icon_marked_path="${dest_path}/${icon_name}"
+
+    local normal_icon_tmp_name="${icon_name%.*}-normal.${icon_name##*.}"
+    local normal_icon_tmp_path="${tmp_path}/${normal_icon_tmp_name}"
+
+    # PNG Optimized.
+    xcrun -sdk iphoneos pngcrush -revert-iphone-optimizations -q "${base_file}" "${normal_icon_tmp_path}"
+
+    width=$(identify -format %w "${normal_icon_tmp_path}")
+    height=$(identify -format %h "${normal_icon_tmp_path}")
+
+    band_height=$(((${height} * 50) / 100))
+    band_position=$((${height} - ${band_height}))
+    text_position=$((${band_position} - 8))
+    point_size=$(((12 * ${width}) / 100))
+
+    # Blur, Text.
+    local blurred_tmp_path="${tmp_path}/blurred.png"
+    local mask_tmp_path="${tmp_path}/mask.png"
+    local combined_tmp_path="${tmp_path}/temp.png"
+
+    local labels_tmp_path="${tmp_path}/labels-base.png"
+    local label_path="${tmp_path}/labels.png"
+
+    convert "${normal_icon_tmp_path}" -blur 10x8 "${blurred_tmp_path}"
+    convert "${blurred_tmp_path}" -gamma 0 -fill white -draw "rectangle 0,${band_position},${width},${height}" "${mask_tmp_path}"
+    convert "${normal_icon_tmp_path}" "${blurred_tmp_path}" "${mask_tmp_path}" -composite "${combined_tmp_path}"
+
+    # Label image create.
+    convert -size ${width}x${band_height} xc:none -fill 'rgba(0,0,0,0.2)' -draw "rectangle 0,0,${width},${band_height}" "${labels_tmp_path}"
+
+    # Compose final image.
+    convert -background none -size ${width}x${band_height} -pointsize ${point_size} -fill white -gravity center -gravity South caption:"${caption}" "${label_path}"
+
+    convert "${combined_tmp_path}" "${labels_tmp_path}" \
+        -geometry +0+${band_position} \
+        -composite "${label_path}" \
+        -geometry +0+$((${band_height} - 40)) \
+        -composite -alpha remove "${icon_marked_path}"
+
+    echo "${icon_marked_path}"
+}
+
+main() {
+
+    check_requirement
+    if [[ "$?" -eq 1 ]]; then
+        return 0
+    fi
+
+    # App info.
+    local app_target
+    if [[ "$#" -ge 1 ]]; then
+        app_target="$1"
+    else
+        app_target="${TARGETNAME}"
+    fi
+
+    # Info plist file.
+    local info_plist_path
+    if [[ "$#" -ge 2 ]]; then
+        info_plist_path="$2"
+    else
+        info_plist_path="${CONFIGURATION_BUILD_DIR}/${INFOPLIST_PATH}"
+    fi
+    message "plist file --- : ${info_plist_path}"
+
+    # App version
+    local app_version=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "${info_plist_path}")
+    message "app version --- : ${app_version}"
+
+    # Build number.
+    local build_number=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "${info_plist_path}")
+    message "build number --- : ${build_number}"
+
+    # Git info.
+    local git_branch=$(git rev-parse --abbrev-ref HEAD)
+    local git_commit=$(git rev-parse --short HEAD)
+
+    # Caption string
+    local info_mark="${app_version}(${build_number})\n${git_branch}\n${git_commit}"
+
+    # TMP path
+    local output_default_path='./tmp/icon_mark'
+    local tmp_path=${TEMP_DIR:-"${output_default_path}"}
+    lx_mkdir "${tmp_path}"
+
+    # Output path
+    local dest_path=${CONFIGURATION_BUILD_DIR:-"./output"}
+    lx_mkdir "${dest_path}"
+
+    # Icon path
+    local icon_path
+    if [[ "$#" -gt 3 ]]; then
+        icon_path="$3"
+    else
+
+        local icon_dir_extension='appiconset'
+        local tmp_icon_dirs=($(find . -type d -name "*.${icon_dir_extension}"))
+        local image_dirs=${tmp_icon_dirs:-''}
+
+        if [[ ! -z "${image_dirs}" ]]; then
+            # Default set first element.
+            # @TODO: find last modified '.appiconset'.
+
+            # message "image_dir : ${image_dirs}"
+            local selected_dir="${image_dirs[0]}"
+            local match_size="1024x1024"
+            local app_icon_origin_img=''
+
+            local app_icon_base="${selected_dir%.*}"
+            local app_icon_basename="$(basename ${app_icon_base})"
+            local app_icon_debug='AppIcon-Dev'
+            dest_path="${selected_dir/${app_icon_basename}/${app_icon_debug}}"
+
+            # Check Debug or Release.
+            local env=${CONFIGURATION:-"Debug"}
+            if [[ "${env}" == 'Release' && "${ASSETCATALOG_COMPILER_APPICON_NAME}" == "${app_icon_debug}" ]]; then
+                # rm -fr "${dest_path}"
+                err "**** NOW AppIcon is set debug icon '${ASSETCATALOG_COMPILER_APPICON_NAME}', Step Flow: "
+                err "**** '${PROJECT_NAME}(Project)' '${TARGETNAME}(Target)' -> 'General' -> 'App Icons and Launch Images' -> 'App Icons Source'..."
+                err "**** RELEASE Configuration : Appicon not support !!! ****"
+
+                return -1
+            elif [[ "${env}" == 'Release' ]]; then
+
+                return 0
+            fi
+
+            local origin_icon_fliter='*.png'
+            local tmp_find=$(find "${selected_dir}" -type f -name ${origin_icon_fliter})
+            if [[ -z "${tmp_find}" ]]; then
+                err "**** Can't find origin AppIcon (size=1024x1024) ****"
+                return 0
+            fi
+
+            pushd "${selected_dir}" >/dev/null
+            # 'PNG'
+            for img in $(ls ${origin_icon_fliter}); do
+                local size=$(identify -format '%wx%h' "${img}")
+                if [[ "${size}" == "${match_size}" ]]; then
+                    app_icon_origin_img="${img}"
+                    break
+                fi
+            done
+            popd >/dev/null
+
+            icon_path="${selected_dir}/${app_icon_origin_img}"
+
+            # Clear up previous 'dest_path'.
+            rm -fr "${dest_path}"
+            lx_mkdir "${dest_path}"
+            cp -f "${icon_path}" "${dest_path}"
+
+        else
+
+            err "Error: No appiconset folder or AppIcon file not support."
+            return 0
+        fi
+    fi
+
+    # Check icon image file.
+    if [[ ! -f "${icon_path}" ]]; then
+        err "'${icon_path}' is not exsit."
+        exit -1
+    fi
+
+    message "dest_path : ${dest_path}."
+    icon_mark_info "${icon_path}" "${tmp_path}" "${dest_path}" "${info_mark}"
+
+    # Clean up.
+    [[ "${tmp_path}" == "${output_default_path}" ]] && rm -fr "${tmp_path}"
+
+    local icon_marked="${dest_path}/$(basename ${icon_path})"
+    lx_make_ios_icons "${icon_marked}" "${dest_path}"
+    lx_make_ios_config "${dest_path}"
+
+    return 0
+}
+
+main "$@"
