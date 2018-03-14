@@ -85,7 +85,9 @@ If `Build Phases` -> `Copy Bundle Resources` has the script files(`icon_mark`,`l
 
 ![](image/icon_eg7.png)
 
-#### 0x0 Import global environment (In-Other-Way)
+---
+
+#### 0x0 Import global environment (Another usage)
 
 __0x00:__
 
