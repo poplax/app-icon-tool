@@ -9,6 +9,7 @@
 #
 
 # set -eu
+# set -x
 
 WORKPATH=$(dirname "$0")
 pushd "${WORKPATH}" >/dev/null
@@ -231,7 +232,7 @@ main() {
             local origin_icon_fliter='*.png'
             local tmp_find=$(find "${selected_dir}" -type f -name ${origin_icon_fliter})
             if [[ -z "${tmp_find}" ]]; then
-                err "**** Can't find origin AppIcon (size=1024x1024) ****"
+                err "**** Can't find any AppIcon image ****"
                 return 0
             fi
 
@@ -245,6 +246,11 @@ main() {
                 fi
             done
             popd >/dev/null
+
+            if [[ -z "${app_icon_origin_img}" ]]; then
+                err "**** Can't find origin AppIcon (size=1024x1024) ****"
+                return 0
+            fi
 
             icon_path="${selected_dir}/${app_icon_origin_img}"
 
@@ -266,7 +272,6 @@ main() {
         exit -1
     fi
 
-    message "dest_path : ${dest_path}."
     icon_mark_info "${icon_path}" "${tmp_path}" "${dest_path}" "${info_mark}"
 
     local icon_marked="${dest_path}/$(basename ${icon_path})"
