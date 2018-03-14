@@ -50,32 +50,7 @@ brew install imagemagick
 
 ### Usage
 
-#### 0x0 Import global environment (Option)
 
-__0x00:__
-
-Put the script whatever you want.
-
-```
-.
-├── icon_mark
-└── lib
-    └── dev_kit.sh
-```
-
-__0x01:__
-
-Open Xcode Project.
-
-`Xcode Project` -> `Target` -> `Build Phases` -> `Add 'Run Script'` -> `Edit to run script file`
-
-![](image/icon_eg3.png)
-
-__Note:__ Script path(Absolute path recommend) : `<Dir-Path-To>/icon_mark`
-
-Please make sure that the `lib` directory should be in the same directory as `icon_mark` file.
-
----
 
 #### 0x0 Import to project (Recommend)
 
@@ -110,8 +85,34 @@ If `Build Phases` -> `Copy Bundle Resources` has the script files(`icon_mark`,`l
 
 ![](image/icon_eg7.png)
 
+#### 0x0 Import global environment (In-Other-Way)
 
-#### 0x1:
+__0x00:__
+
+Put the script whatever you want.
+
+```
+.
+├── icon_mark
+└── lib
+    └── dev_kit.sh
+```
+
+__0x01:__
+
+Open Xcode Project.
+
+`Xcode Project` -> `Target` -> `Build Phases` -> `Add 'Run Script'` -> `Edit to run script file`
+
+![](image/icon_eg3.png)
+
+__Note:__ Script path(Absolute path recommend) : `<Dir-Path-To>/icon_mark`
+
+Please make sure that the `lib` directory should be in the same directory as `icon_mark` file.
+
+---
+
+#### 0x1 Run And Setup.
 
 1. First `Build` your project; if success, `AppIcon-Dev` was generated in the `.xcassets` folder.
 2.  Set project -> target -> General -> App Icons and Launch Images -> App Icons Source to `AppIcon-Dev` 
