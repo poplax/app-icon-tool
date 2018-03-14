@@ -73,14 +73,15 @@ lx_lowcase() {
 
 # **********************************************************************
 # <--- iOS icon
-declare -r DEVKIT_ICON_EXTENSION='.png'
+declare -r DEFAULT_APPICON_NAME='iTunesArtwork'
+declare -r DEFAULT_ICON_EXTENSION='.png'
 
 # Make image.
 lx_make_image() {
     local size
     local input_file
     local output_dir
-    local filename="default_file${DEVKIT_ICON_EXTENSION}"
+    local filename="default_file${DEFAULT_ICON_EXTENSION}"
 
     size="$1"
     input_file="$2"
@@ -97,7 +98,7 @@ lx_make_image() {
 
     local output_file="${output_dir}/${filename}"
     if convert "${input_file}" -resize ${size} "${output_file}"; then
-        message "Created ${output_file} ."
+        message "Created ${output_file}"
     fi
 }
 
@@ -111,7 +112,7 @@ lx_make_ios_icons() {
 
     # Sizes value
     local app_store_1x="1024"
-    lx_make_image "${app_store_1x}" "${origin_file}" "${output_dir}" "iTunesArtwork${DEVKIT_ICON_EXTENSION}"
+    lx_make_image "${app_store_1x}" "${origin_file}" "${output_dir}" "${DEFAULT_APPICON_NAME}${DEFAULT_ICON_EXTENSION}"
 
     local suffix
 
@@ -120,7 +121,7 @@ lx_make_ios_icons() {
         suffix=''
         for i in {1..3}; do
             [[ $i -gt 1 ]] && suffix="@${i}x"
-            lx_make_image "$((${m_size} * ${i}))" "${origin_file}" "${output_dir}" "iphone_${m_size}${suffix}${DEVKIT_ICON_EXTENSION}"
+            lx_make_image "$((${m_size} * ${i}))" "${origin_file}" "${output_dir}" "iphone_${m_size}${suffix}${DEFAULT_ICON_EXTENSION}"
         done
     done
 
@@ -129,13 +130,13 @@ lx_make_ios_icons() {
         suffix=''
         for i in {1..2}; do
             [[ $i -gt 1 ]] && suffix="@${i}x"
-            lx_make_image "$((${m_size} * ${i}))" "${origin_file}" "${output_dir}" "ipad_${m_size}${suffix}${DEVKIT_ICON_EXTENSION}"
+            lx_make_image "$((${m_size} * ${i}))" "${origin_file}" "${output_dir}" "ipad_${m_size}${suffix}${DEFAULT_ICON_EXTENSION}"
         done
     done
 
     # iPad Pro
     local ipad_pro_size="167"
-    lx_make_image "${ipad_pro_size}" "${origin_file}" "${output_dir}" "ipad_pro_${ipad_pro_size}${DEVKIT_ICON_EXTENSION}"
+    lx_make_image "${ipad_pro_size}" "${origin_file}" "${output_dir}" "ipad_pro_${ipad_pro_size}${DEFAULT_ICON_EXTENSION}"
 
 }
 
@@ -264,5 +265,4 @@ lx_make_ios_config() {
 }
 CONFIG_IOS
 }
-
 # iOS icon END. --->

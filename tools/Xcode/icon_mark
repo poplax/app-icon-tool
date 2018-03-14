@@ -135,6 +135,13 @@ icon_mark_info() {
     echo "${icon_marked_path}"
 }
 
+###
+# Globals:
+#   DEFAULT_APPICON_NAME
+#   DEFAULT_ICON_EXTENSION
+# Returns:
+#   int
+###
 main() {
 
     check_requirement
@@ -204,13 +211,13 @@ main() {
 
             local app_icon_base="${selected_dir%.*}"
             local app_icon_basename="$(basename ${app_icon_base})"
+            local app_icon_xcproj_config=${ASSETCATALOG_COMPILER_APPICON_NAME:-'AppIcon'}
             local app_icon_debug='AppIcon-Dev'
             dest_path="${selected_dir/${app_icon_basename}/${app_icon_debug}}"
 
             # Check Debug or Release.
             local env=${CONFIGURATION:-"Debug"}
-            if [[ "${env}" == 'Release' && "${ASSETCATALOG_COMPILER_APPICON_NAME}" == "${app_icon_debug}" ]]; then
-                # rm -fr "${dest_path}"
+            if [[ "${env}" == 'Release' && "${app_icon_xcproj_config}" == "${app_icon_debug}" ]]; then
                 err "**** NOW AppIcon is set debug icon '${ASSETCATALOG_COMPILER_APPICON_NAME}', Step Flow: "
                 err "**** '${PROJECT_NAME}(Project)' '${TARGETNAME}(Target)' -> 'General' -> 'App Icons and Launch Images' -> 'App Icons Source'..."
                 err "**** RELEASE Configuration : Appicon not support !!! ****"
@@ -262,12 +269,18 @@ main() {
     message "dest_path : ${dest_path}."
     icon_mark_info "${icon_path}" "${tmp_path}" "${dest_path}" "${info_mark}"
 
-    # Clean up.
-    [[ "${tmp_path}" == "${output_default_path}" ]] && rm -fr "${tmp_path}"
-
     local icon_marked="${dest_path}/$(basename ${icon_path})"
     lx_make_ios_icons "${icon_marked}" "${dest_path}"
     lx_make_ios_config "${dest_path}"
+
+    # Clean up.
+    if [[ "${icon_name}" != "${DEFAULT_APPICON_NAME}${DEFAULT_ICON_EXTENSION}" ]]; then
+        rm -fr "${dest_path}/$(basename ${icon_path})"
+    fi
+
+    if [[ "${tmp_path}" == "${output_default_path}" ]]; then
+        rm -fr "${tmp_path}"
+    fi
 
     return 0
 }
