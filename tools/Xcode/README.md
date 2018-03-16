@@ -12,7 +12,7 @@ Info:
  
 Add text of above info to the App-Icon image as a watermark.
 
-![](image/icon_eg2.png)
+![](doc/image/icon_eg2.png)
 
 
 ### Featrue 
@@ -51,7 +51,6 @@ brew install imagemagick
 ### Usage
 
 
-
 #### 0x0 Import to project (Recommend)
 
 Add tool to your project
@@ -65,7 +64,7 @@ Add __2 files__ to the project(with copy).
 
 BE-SURE: `icon_mark`, `lib` directory, in the same level.
 
-![](image/icon_eg6.png)
+![](doc/image/icon_eg6.png)
 
 __0x01:__
 
@@ -75,7 +74,7 @@ Edit `Run Script` content:
 "<Path-To-Script>/icon_mark"
 ```
 
-![](image/icon_eg8.png)
+![](doc/image/icon_eg8.png)
 
 In this demo project use : `"${PROJECT_DIR}/${PROJECT_NAME}/Script/icon_mark`
 
@@ -83,7 +82,7 @@ __0x02:__
 
 If `Build Phases` -> `Copy Bundle Resources` has the script files(`icon_mark`,`lib/dev_kit.sh`), and remove them.
 
-![](image/icon_eg7.png)
+![](doc/image/icon_eg7.png)
 
 ---
 
@@ -106,7 +105,7 @@ Open Xcode Project.
 
 `Xcode Project` -> `Target` -> `Build Phases` -> `Add 'Run Script'` -> `Edit to run script file`
 
-![](image/icon_eg3.png)
+![](doc/image/icon_eg3.png)
 
 __Note:__ Script path(Absolute path recommend) : `<Dir-Path-To>/icon_mark`
 
@@ -121,8 +120,8 @@ Please make sure that the `lib` directory should be in the same directory as `ic
 3. `Run` again. the AppIcon will be setup.
 
 
-![](image/icon_eg4.png)
-![](image/icon_eg5.png)
+![](doc/image/icon_eg4.png)
+![](doc/image/icon_eg5.png)
 
 __Important__ 
 
