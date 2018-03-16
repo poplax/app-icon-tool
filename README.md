@@ -66,4 +66,9 @@ Create all size of the platform(default: iOS) support.
 
 ## License
 
-MIT.
+__MIT__
+
+## Related tools
+
+- [App Icon Fitter](https://github.com/poplax/app-icon-fitter)
+- [AppInfo Icon Marker](https://github.com/poplax/app-icon-fitter/blob/master/tools/Xcode)

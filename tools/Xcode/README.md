@@ -1,6 +1,6 @@
 # Xcode Script Tools
 
-## icon_mark
+## AppInfo Icon Maker
 
 Shell Script tool of Xcode.
 
@@ -138,3 +138,9 @@ __Important__
 ### LICENSE
 
 __MIT__
+
+
+## Related tools
+
+- [App Icon Fitter](https://github.com/poplax/app-icon-fitter)
+- [AppInfo Icon Marker](https://github.com/poplax/app-icon-fitter/blob/master/tools/Xcode)
