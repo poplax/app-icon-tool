@@ -1,46 +1,140 @@
 #!/bin/sh
-set -ue
+set -e
 
-which git >/dev/null 2>&1 || echo 'xcode-select --install'
-which gem >/dev/null 2>&1 || echo 'install `gem` first'
-
-script_file=$(basename "$0")
-
-if [[ -z "$(find . -type d -d 1 -name "*.xcodeproj")" ]]; then
-	echo "Couldn't find any '*.xcodeproj'."
-	echo "NOTE: Please put the '${script_file}' and '*.xcodeproj' in the same directory."
-	echo "Try again."
-fi
-
-# GIT_ICON_MARK='https://github.com/poplax/app-icon-fitter.git' 
-GIT_ICON_MARK='http://gitlab.sys.wanmei.com/ios/app-icon-fitter.git'
+# Check env.
+which git >/dev/null 2>&1 || { echo 'Run `xcode-select --install`'; exit -1; }
+which gem >/dev/null 2>&1 || { echo 'Install `gem` please.'; exit -1; }
 
 
-[[ -d "tmp" ]] && rm -rf tmp
-git clone "${GIT_ICON_MARK}" tmp
+# INSTALL 
+PROJECT_PATH='.'
+SCRIPT_FILE=$(basename "$0")
+TMP_DIR='tmp'
 
-ICON_MARK_SCRIPT_PATH='tools/Xcode/Script'
-ICON_MARK_IMAGE='tools/Xcode/icon_1024.png'
+ICON_MARK_SCRIPT_DIRNAME='Script'
+ICON_MARK_BASE_DIR='tools/Xcode'
+ICON_MARK_SCRIPT_PATH="${ICON_MARK_BASE_DIR}/${ICON_MARK_SCRIPT_DIRNAME}"
+ICON_MARK_IMAGE="${ICON_MARK_BASE_DIR}/icon_1024.png"
 ICON_DIR_EXTENSION='appiconset'
 
-cd tmp
-cp -fr ${ICON_MARK_SCRIPT_PATH} ../
-cd -
+if [[ "$#" -eq 0 ]]; then 
+	echo 
+	echo "ALSO:"
+	echo "${SCRIPT_FILE} [PROJECT_PATH]"
+	echo "eg. '${SCRIPT_FILE} /Users/Yourname/Project/Demo.xcodeproj'"
+	echo 
+else
+	project_tmp="$1"
+	PROJECT_PATH=${project_tmp%/*}
+fi
 
-# t=$(find . -type d -name "*.appiconset")
-# echo $t
-tmp_icon_dirs=($(find . -type d -name "*.${ICON_DIR_EXTENSION}"))
+# IFS=$'\n'
+# xcodeproj_tmp=$(find "${PROJECT_PATH}" -type d -d 1 -name "*.xcodeproj")
+# xcodeproj_dirs=${xcodeproj_tmp:-''}
+# xcodeproj_path=${xcodeproj_dirs[0]}
+
+# xcodeprojs=()
+# while IFS= read -r -d $'\0'; do
+# 	xcodeprojs+=("${REPLY}")
+# done < <(find ${PROJECT_PATH} -type d -d 1 -name "*.xcodeproj" -print0)
+
+# array=()
+# while IFS=  read -r -d $'\0'; do
+#     array+=("$REPLY")
+# done < <(find . -name "*.xcodeproj" -print0)
+
+array=()
+find . -name "*.xcodepro" -print0 >tmpfile
+while IFS=  read -r -d $'\n'; do
+    array+=("$REPLY")
+done <tmpfile
+rm -f tmpfile
+
+# echo ${xcodeprojs}
+echo $array
+
+exit
+
+echo '--'
+echo ${xcodeproj_tmp}
+echo ${xcodeproj_tmp}
+
+echo '--'
+echo ${xcodeproj_dirs}
+echo '--'
+echo ${xcodeproj_path}
+exit
+
+if [[ -z "${xcodeproj_dirs}" ]]; then
+	echo "Couldn't find any '*.xcodeproj'."
+	echo "NOTE: Please put the '${SCRIPT_FILE}' and '*.xcodeproj' in the same directory."
+fi
+
+echo "${xcodeproj_dirs}"
+
+# GIT_ICON_MARK='https://github.com/poplax/app-icon-fitter.git' 
+
+[[ -d "${TMP_DIR}" ]] && rm -rf "${TMP_DIR}"
+# git clone "${GIT_ICON_MARK}" "${TMP_DIR}"
+
+cp -fr "${TMP_DIR}/${ICON_MARK_SCRIPT_PATH}" "${PROJECT_PATH}"
+
+tmp_icon_dirs=($(find "${PROJECT_PATH}" -type d -name "*.${ICON_DIR_EXTENSION}"))
 image_dirs=${tmp_icon_dirs:-''}
+image_first=${image_dirs[0]}
 
-# echo "---" ${image_dirs}
-# echo "+++" ${tmp_icon_dirs}
-
-if [[ -z "${image_dirs}" ]]; then
-	echo "No appiconasset directory."
-	rm -fr tmp
+if [[ -z "${image_first}" ]]; then
+	echo "No 'appiconasset' directory."
+	rm -fr "${TMP_DIR}"
+	rm -fr "${PROJECT_PATH}/${ICON_MARK_SCRIPT_DIRNAME}"
 	exit -1
 fi
 
-cp -f "${ICON_MARK_IMAGE}" "${image_dirs}[0]"
+# Demo AppIcon copy.
+cp -f "${TMP_DIR}/${ICON_MARK_IMAGE}" "${image_first}/"
 
-rm -fr tmp
+echo 
+echo "SCRIPT INSTALL FINISHED:"
+echo "'${ICON_MARK_IMAGE}'' copy to '${image_first}'"
+echo "Remove it if don't need."
+echo 
+
+# Ruby Part.
+
+# Global ICON_MARK_BASE_DIR
+add_rb_script ()
+{
+	cp -f "${ICON_MARK_BASE_DIR}/Gemfile" "${PROJECT_PATH}"
+	cp -f "${ICON_MARK_BASE_DIR}/appicon_mark.rb" "${PROJECT_PATH}"
+	cp -f "${ICON_MARK_BASE_DIR}/proj_config.rb" "${PROJECT_PATH}"
+}
+
+# Global ICON_MARK_BASE_DIR
+remove_rb_script ()
+{
+	rm -f "${ICON_MARK_BASE_DIR}/Gemfile"
+	rm -f "${ICON_MARK_BASE_DIR}/appicon_mark.rb"
+	rm -f "${ICON_MARK_BASE_DIR}/proj_config.rb"
+}
+
+
+pushd "${TMP_DIR}"
+
+add_rb_script
+
+gem install bundler
+bundler install
+
+./appicon_mark.rb install --project 
+
+# remove_rb_script
+
+popd
+
+
+# Clean up TMP_DIR
+# rm -fr "${TMP_DIR}"
+echo "Clean up."
+
+
+echo "Install done."
