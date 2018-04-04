@@ -1,0 +1,46 @@
+#!/bin/sh
+set -ue
+
+which git >/dev/null 2>&1 || echo 'xcode-select --install'
+which gem >/dev/null 2>&1 || echo 'install `gem` first'
+
+script_file=$(basename "$0")
+
+if [[ -z "$(find . -type d -d 1 -name "*.xcodeproj")" ]]; then
+	echo "Couldn't find any '*.xcodeproj'."
+	echo "NOTE: Please put the '${script_file}' and '*.xcodeproj' in the same directory."
+	echo "Try again."
+fi
+
+# GIT_ICON_MARK='https://github.com/poplax/app-icon-fitter.git' 
+GIT_ICON_MARK='http://gitlab.sys.wanmei.com/ios/app-icon-fitter.git'
+
+
+[[ -d "tmp" ]] && rm -rf tmp
+git clone "${GIT_ICON_MARK}" tmp
+
+ICON_MARK_SCRIPT_PATH='tools/Xcode/Script'
+ICON_MARK_IMAGE='tools/Xcode/icon_1024.png'
+ICON_DIR_EXTENSION='appiconset'
+
+cd tmp
+cp -fr ${ICON_MARK_SCRIPT_PATH} ../
+cd -
+
+# t=$(find . -type d -name "*.appiconset")
+# echo $t
+tmp_icon_dirs=($(find . -type d -name "*.${ICON_DIR_EXTENSION}"))
+image_dirs=${tmp_icon_dirs:-''}
+
+# echo "---" ${image_dirs}
+# echo "+++" ${tmp_icon_dirs}
+
+if [[ -z "${image_dirs}" ]]; then
+	echo "No appiconasset directory."
+	rm -fr tmp
+	exit -1
+fi
+
+cp -f "${ICON_MARK_IMAGE}" "${image_dirs}[0]"
+
+rm -fr tmp
