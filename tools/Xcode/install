@@ -1,15 +1,16 @@
 #!/bin/sh
-set -e
+
+set -eu
 
 # Check env.
 which git >/dev/null 2>&1 || { echo 'Run `xcode-select --install`'; exit -1; }
 which gem >/dev/null 2>&1 || { echo 'Install `gem` please.'; exit -1; }
 
-
 # INSTALL 
 PROJECT_PATH='.'
 SCRIPT_FILE=$(basename "$0")
 TMP_DIR='tmp'
+XCODE_PROJECT_EXTENSION='xcodeproj'
 
 ICON_MARK_SCRIPT_DIRNAME='Script'
 ICON_MARK_BASE_DIR='tools/Xcode'
@@ -17,65 +18,86 @@ ICON_MARK_SCRIPT_PATH="${ICON_MARK_BASE_DIR}/${ICON_MARK_SCRIPT_DIRNAME}"
 ICON_MARK_IMAGE="${ICON_MARK_BASE_DIR}/icon_1024.png"
 ICON_DIR_EXTENSION='appiconset'
 
+# Global ICON_MARK_BASE_DIR
+NEED_CLEAN_RUBY='true'
+add_rb_script ()
+{
+	cp -f "${TMP_DIR}/${ICON_MARK_BASE_DIR}/Gemfile" "${PROJECT_PATH}"
+	cp -f "${TMP_DIR}/${ICON_MARK_BASE_DIR}/appicon_mark.rb" "${PROJECT_PATH}"
+	cp -f "${TMP_DIR}/${ICON_MARK_BASE_DIR}/proj_config.rb" "${PROJECT_PATH}"
+}
+remove_rb_script ()
+{
+	[[ -f "${PROJECT_PATH}/Gemfile" ]] && rm -f "${PROJECT_PATH}/Gemfile"
+	[[ -f "${PROJECT_PATH}/Gemfile.lock" ]] && rm -f "${PROJECT_PATH}/Gemfile.lock"
+	[[ -f "${PROJECT_PATH}/appicon_mark.rb" ]] && rm -f "${PROJECT_PATH}/appicon_mark.rb"
+	[[ -f "${PROJECT_PATH}/proj_config.rb" ]] && rm -f "${PROJECT_PATH}/proj_config.rb"
+}
+check_gem ()
+{
+	local installed=''
+	local gem_name
+	gem_name="$1"
+	gem_local=$(gem list --no-version|grep "^${gem_name}$")
+	[[ -n "${gem_local}" ]] && installed='true'
+	echo "${installed}"
+}
+
+
 if [[ "$#" -eq 0 ]]; then 
-	echo 
-	echo "ALSO:"
-	echo "${SCRIPT_FILE} [PROJECT_PATH]"
-	echo "eg. '${SCRIPT_FILE} /Users/Yourname/Project/Demo.xcodeproj'"
+	echo "ALSO CAN RUN LIKE:"
+	echo "$ ${SCRIPT_FILE} [PROJECT_PATH] ['noclean']"
+	echo "eg. '${SCRIPT_FILE} /Users/Username/Project/Demo.${XCODE_PROJECT_EXTENSION} noclean'"
+
+	echo "CLEANUP ALL STUFF :"
+	echo "eg. '${SCRIPT_FILE} clean'"
 	echo 
 else
-	project_tmp="$1"
-	PROJECT_PATH=${project_tmp%/*}
+
+	[[ "$#" -gt 0 ]] && { project_tmp="$1"; PROJECT_PATH=${project_tmp%/*}; }
+	[[ "$#" -gt 1 ]] && [[ "$2" == 'noclean' ]] && NEED_CLEAN_RUBY=''
+
+	# Clean
+	if [[ "$#" -eq 1 && "$1" == 'clean' ]]; then
+
+		PROJECT_PATH='.'
+		[[ -d "${TMP_DIR}" ]] && rm -fr "${TMP_DIR}"
+		remove_rb_script
+
+		echo "Clean files: "
+		echo "- ${TMP_DIR}"
+		echo "- ${PROJECT_PATH}/Gemfile"
+		echo "- ${PROJECT_PATH}/Gemfile.lock"
+		echo "- ${PROJECT_PATH}/appicon_mark.rb"
+		echo "- ${PROJECT_PATH}/proj_config.rb"
+
+		exit 0
+	fi
 fi
 
-# IFS=$'\n'
-# xcodeproj_tmp=$(find "${PROJECT_PATH}" -type d -d 1 -name "*.xcodeproj")
-# xcodeproj_dirs=${xcodeproj_tmp:-''}
-# xcodeproj_path=${xcodeproj_dirs[0]}
+declare -a xcodeproj=()
+declare -i xi=0
 
-# xcodeprojs=()
-# while IFS= read -r -d $'\0'; do
-# 	xcodeprojs+=("${REPLY}")
-# done < <(find ${PROJECT_PATH} -type d -d 1 -name "*.xcodeproj" -print0)
+while read -r line
+do
+	xcodeproj+=("${line}")
+	(( ++xi ))
+done <<< "$(find ${PROJECT_PATH} -type d -d 1 -name "*.${XCODE_PROJECT_EXTENSION}")"
 
-# array=()
-# while IFS=  read -r -d $'\0'; do
-#     array+=("$REPLY")
-# done < <(find . -name "*.xcodeproj" -print0)
+# echo "xcodeproj = ${xcodeproj}" #First element
+# echo "xcodeproj[@] = ${xcodeproj[@]}" #All element
 
-array=()
-find . -name "*.xcodepro" -print0 >tmpfile
-while IFS=  read -r -d $'\n'; do
-    array+=("$REPLY")
-done <tmpfile
-rm -f tmpfile
-
-# echo ${xcodeprojs}
-echo $array
-
-exit
-
-echo '--'
-echo ${xcodeproj_tmp}
-echo ${xcodeproj_tmp}
-
-echo '--'
-echo ${xcodeproj_dirs}
-echo '--'
-echo ${xcodeproj_path}
-exit
-
-if [[ -z "${xcodeproj_dirs}" ]]; then
-	echo "Couldn't find any '*.xcodeproj'."
-	echo "NOTE: Please put the '${SCRIPT_FILE}' and '*.xcodeproj' in the same directory."
+# First '.xcodeproj'
+if [[ -z "${xcodeproj}" ]]; then
+	echo "Couldn't find any '*.${XCODE_PROJECT_EXTENSION}'."
+	echo "NOTE: Please put the '${SCRIPT_FILE}' and '*.${XCODE_PROJECT_EXTENSION}' in the same directory."
+	exit -1
 fi
 
-echo "${xcodeproj_dirs}"
-
-# GIT_ICON_MARK='https://github.com/poplax/app-icon-fitter.git' 
-
+# GIT
+GIT_ICON_MARK='https://github.com/poplax/app-icon-fitter.git'
 [[ -d "${TMP_DIR}" ]] && rm -rf "${TMP_DIR}"
-# git clone "${GIT_ICON_MARK}" "${TMP_DIR}"
+git clone "${GIT_ICON_MARK}" "${TMP_DIR}"
 
 cp -fr "${TMP_DIR}/${ICON_MARK_SCRIPT_PATH}" "${PROJECT_PATH}"
 
@@ -84,8 +106,8 @@ image_dirs=${tmp_icon_dirs:-''}
 image_first=${image_dirs[0]}
 
 if [[ -z "${image_first}" ]]; then
-	echo "No 'appiconasset' directory."
-	rm -fr "${TMP_DIR}"
+	echo "No 'appiconasset' directory exist."
+	# rm -fr "${TMP_DIR}"
 	rm -fr "${PROJECT_PATH}/${ICON_MARK_SCRIPT_DIRNAME}"
 	exit -1
 fi
@@ -97,44 +119,28 @@ echo
 echo "SCRIPT INSTALL FINISHED:"
 echo "'${ICON_MARK_IMAGE}'' copy to '${image_first}'"
 echo "Remove it if don't need."
-echo 
+echo "---"
 
-# Ruby Part.
-
-# Global ICON_MARK_BASE_DIR
-add_rb_script ()
-{
-	cp -f "${ICON_MARK_BASE_DIR}/Gemfile" "${PROJECT_PATH}"
-	cp -f "${ICON_MARK_BASE_DIR}/appicon_mark.rb" "${PROJECT_PATH}"
-	cp -f "${ICON_MARK_BASE_DIR}/proj_config.rb" "${PROJECT_PATH}"
-}
+# <<<<<<<<<<<
+# Ruby Part. 
 
 # Global ICON_MARK_BASE_DIR
-remove_rb_script ()
-{
-	rm -f "${ICON_MARK_BASE_DIR}/Gemfile"
-	rm -f "${ICON_MARK_BASE_DIR}/appicon_mark.rb"
-	rm -f "${ICON_MARK_BASE_DIR}/proj_config.rb"
-}
 
+default_target_name="$(basename ${xcodeproj%.*})"
 
-pushd "${TMP_DIR}"
+# Command line.
 
 add_rb_script
-
-gem install bundler
+[[ -z "$(check_gem "bundler")" ]]  && gem install bundler
 bundler install
+./appicon_mark.rb install --project "${xcodeproj}" --target "${default_target_name}"
 
-./appicon_mark.rb install --project 
-
-# remove_rb_script
-
-popd
-
+# Ruby Part End.
+# >>>>>>>>>>
 
 # Clean up TMP_DIR
-# rm -fr "${TMP_DIR}"
+rm -fr "${TMP_DIR}"
+[[ -n "${NEED_CLEAN_RUBY}" ]] && remove_rb_script
+
 echo "Clean up."
-
-
 echo "Install done."

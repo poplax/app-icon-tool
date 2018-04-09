@@ -106,7 +106,9 @@ module XcodeprojConfig
       puts "#{project_path} not exist."
       ret = false
     end
+    p ret
     ret
+
   end
 
   def validate_build_phase?(phase)
