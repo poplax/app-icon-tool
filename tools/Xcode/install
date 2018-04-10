@@ -49,7 +49,7 @@ if [[ "$#" -eq 0 ]]; then
 	echo "$ ${SCRIPT_FILE} [PROJECT_PATH] ['noclean']"
 	echo "eg. '${SCRIPT_FILE} /Users/Username/Project/Demo.${XCODE_PROJECT_EXTENSION} noclean'"
 
-	echo "CLEANUP ALL STUFF :"
+	echo "CLEANUP ALL STUFF:"
 	echo "eg. '${SCRIPT_FILE} clean'"
 	echo 
 else

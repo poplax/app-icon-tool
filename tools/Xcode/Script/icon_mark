@@ -155,7 +155,7 @@ main() {
     if [[ "$#" -ge 1 ]]; then
         app_target="$1"
     else
-        app_target="${TARGETNAME}"
+        app_target="${PROJECT_NAME}"
     fi
 
     # Info plist file.
