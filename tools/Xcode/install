@@ -42,7 +42,22 @@ check_gem ()
 	[[ -n "${gem_local}" ]] && installed='true'
 	echo "${installed}"
 }
+lookup_artwork_image ()
+{
+	local artwork_image=''
+	local asset_dir
+	asset_dir="$1"
 
+	while read -r line
+	do
+		# if [[ -n $(file "${line}"|grep "120 x 120") ]]; then
+		if [[ -n $(file "${line}"|grep "1024 x 1024") ]]; then
+			artwork_image="${line}"
+			break
+		fi
+	done <<< "$(find "${asset_dir}" -type f -name "*.png")"
+	echo ${artwork_image}
+}
 
 if [[ "$#" -eq 0 ]]; then 
 	echo "ALSO CAN RUN LIKE:"
@@ -76,12 +91,9 @@ else
 fi
 
 declare -a xcodeproj=()
-declare -i xi=0
-
 while read -r line
 do
 	xcodeproj+=("${line}")
-	(( ++xi ))
 done <<< "$(find ${PROJECT_PATH} -type d -d 1 -name "*.${XCODE_PROJECT_EXTENSION}")"
 
 # echo "xcodeproj = ${xcodeproj}" #First element
@@ -107,18 +119,24 @@ image_first=${image_dirs[0]}
 
 if [[ -z "${image_first}" ]]; then
 	echo "No 'appiconasset' directory exist."
-	# rm -fr "${TMP_DIR}"
+	rm -fr "${TMP_DIR}"
 	rm -fr "${PROJECT_PATH}/${ICON_MARK_SCRIPT_DIRNAME}"
 	exit -1
 fi
 
-# Demo AppIcon copy.
-cp -f "${TMP_DIR}/${ICON_MARK_IMAGE}" "${image_first}/"
+artwork_image_first=$(lookup_artwork_image "${image_first}")
 
 echo 
 echo "SCRIPT INSTALL FINISHED:"
-echo "'${ICON_MARK_IMAGE}'' copy to '${image_first}'"
-echo "Remove it if don't need."
+
+# Demo AppIcon copy.
+if [[ -z "${artwork_image_first}" ]]; then
+	cp -f "${TMP_DIR}/${ICON_MARK_IMAGE}" "${image_first}/"
+	echo "'${ICON_MARK_IMAGE}'' copy to '${image_first}'"
+	echo "Remove it if don't need."
+else
+	echo "ArtWorkImage(size:1024x1024) : ${artwork_image_first}"
+fi
 echo "---"
 
 # <<<<<<<<<<<
@@ -132,7 +150,9 @@ default_target_name="$(basename ${xcodeproj%.*})"
 
 add_rb_script
 [[ -z "$(check_gem "bundler")" ]]  && gem install bundler
-bundler install
+bundler install >/dev/null 2>&1
+
+echo "./appicon_mark.rb install --project "${xcodeproj}" --target "${default_target_name}""
 ./appicon_mark.rb install --project "${xcodeproj}" --target "${default_target_name}"
 
 # Ruby Part End.

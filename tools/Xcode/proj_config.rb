@@ -8,6 +8,8 @@ require 'xcodeproj'
 # Module of config Xcode Project.
 module XcodeprojConfig
   include Xcodeproj
+  include Xcodeproj::Project::Object
+
   extend Xcodeproj::Project::ProjectHelper
 
   MARK_SCRIPT_NAME      = '[Tool] Version-IconMark'.freeze
@@ -16,13 +18,15 @@ module XcodeprojConfig
   APP_ICON_NAME         = 'AppIcon-Dev'.freeze
   APP_ICON_ASSET_KEY    = 'ASSETCATALOG_COMPILER_APPICON_NAME'.freeze
 
+  attr_reader :project
+
   # setup Xcodeproj config file.
   def config_setup(project_path = 'ProjectPath', target_name = 'TargetName')
 
     validate_project?(project_path) || exit!
     needs_update = false
 
-    project = Xcodeproj::Project.open(project_path)
+    @project = Xcodeproj::Project.open(project_path)
     project.targets.each do |target|
 
       next if target.name != target_name
@@ -41,7 +45,7 @@ module XcodeprojConfig
     validate_project?(project_path) || exit!
     needs_update = false
 
-    project = Xcodeproj::Project.open(project_path)
+    @project = Xcodeproj::Project.open(project_path)
     project.targets.each do |target|
       next if !target_name.nil? && target.name != target_name
 
@@ -57,27 +61,32 @@ module XcodeprojConfig
 
   private
 
+  def create_phase
+    shell_phase = project.new(PBXShellScriptBuildPhase)
+    shell_phase.name = MARK_SCRIPT_NAME
+    shell_phase
+  end
+
   # Add script phases
   def add_script(target)
 
-    target.build_phases.delete_if do |e|
-      validate_build_phase?(e)
+    target.build_phases.each do |bp|
+      bp.remove_from_project if validate_build_phase?(bp)
     end
 
-    shell_phase = target.new_shell_script_build_phase(MARK_SCRIPT_NAME)
-    target.build_phases.unshift(shell_phase).uniq!
-
+    shell_phase = create_phase
+    target.build_phases.unshift(shell_phase)
     shell_phase.shell_script = "\"${PROJECT_DIR}/#{SCRIPT_DIR}/icon_mark\""
   end
 
   # Configuration Appicon setting
-  def setup_configuration(target)
+  def setup_configuration(target,  configuration = 'Debug')
 
     target_configuration_list = target.build_configuration_list
-    icon_name                 = target_configuration_list.get_setting(APP_ICON_ASSET_KEY)['Debug']
+    icon_name                 = target_configuration_list.get_setting(APP_ICON_ASSET_KEY)[configuration]
 
     return if icon_name == APP_ICON_NAME
-    target_configuration_list.set_setting(APP_ICON_ASSET_KEY, APP_ICON_NAME)
+    target_configuration_list[configuration].build_settings[APP_ICON_ASSET_KEY] = APP_ICON_NAME
   end
 
   # Remove script.
@@ -106,9 +115,7 @@ module XcodeprojConfig
       puts "#{project_path} not exist."
       ret = false
     end
-    p ret
     ret
-
   end
 
   def validate_build_phase?(phase)

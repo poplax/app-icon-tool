@@ -184,7 +184,7 @@ main() {
 
     # TMP path
     local output_default_path='./tmp/icon_mark'
-    local tmp_path=${TEMP_DIR:-"${output_default_path}"}
+    local tmp_path=${TEMP_DIR:-${output_default_path}}
     lx_mkdir "${tmp_path}"
 
     # Output path
