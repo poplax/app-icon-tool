@@ -281,6 +281,12 @@ main() {
     # Clean up.
     if [[ "${icon_name}" != "${DEFAULT_APPICON_NAME}${DEFAULT_ICON_EXTENSION}" ]]; then
         rm -fr "${dest_path}/$(basename ${icon_path})"
+        # Useless icon.
+        sizes="20 29 40 60"
+        for s in ${sizes}; do
+            remove_file="${dest_path}/iphone_${s}.png"
+            [[ -f "${remove_file}" ]] && rm -f "${remove_file}"
+        done
     fi
 
     if [[ "${tmp_path}" == "${output_default_path}" ]]; then
