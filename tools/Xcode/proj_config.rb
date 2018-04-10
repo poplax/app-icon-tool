@@ -28,7 +28,6 @@ module XcodeprojConfig
 
     @project = Xcodeproj::Project.open(project_path)
     project.targets.each do |target|
-
       next if target.name != target_name
 
       setup_configuration(target)
@@ -51,7 +50,6 @@ module XcodeprojConfig
 
       cleanup_configuration(target)
       remove_script(target)
-      project.save
 
       needs_update = true
     end
