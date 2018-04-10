@@ -80,7 +80,7 @@ module XcodeprojConfig
   end
 
   # Configuration Appicon setting
-  def setup_configuration(target,  configuration = 'Debug')
+  def setup_configuration(target, configuration = 'Debug')
 
     target_configuration_list = target.build_configuration_list
     icon_name                 = target_configuration_list.get_setting(APP_ICON_ASSET_KEY)[configuration]
@@ -98,14 +98,15 @@ module XcodeprojConfig
   end
 
   # Cleanup configuration.
-  def cleanup_configuration(target)
+  def cleanup_configuration(target, configuration = 'Debug')
 
     target_configuration_list = target.build_configuration_list
-    icon_name                 = target_configuration_list.get_setting(APP_ICON_ASSET_KEY)['Debug']
+    icon_name                 = target_configuration_list.get_setting(APP_ICON_ASSET_KEY)[configuration]
 
     return if icon_name == APP_ICON_NAME_DEFAULT
-    target_configuration_list.set_setting(APP_ICON_ASSET_KEY, APP_ICON_NAME_DEFAULT)
+    target_configuration_list[configuration].build_settings[APP_ICON_ASSET_KEY] = APP_ICON_NAME_DEFAULT
   end
+
 
   # Helper
 
