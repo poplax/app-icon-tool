@@ -28,7 +28,7 @@ _test passed_
 - Xcode 9+
 - [ImageMagick](http://www.imagemagick.org/)
 
-### Dependent on
+### Dependent On
 
 #### Install
 
@@ -48,8 +48,36 @@ __[ImageMagick](http://www.imagemagick.org/)__
 brew install imagemagick 
 ```
 
-### Usage
+### Auto INSTALL (Configure '.xcodeproj' automatic)
 
+Copy `install` script file to your project __folder__ as same as `.xcodeproj` directory, and run:
+
+```shell
+./install
+```
+
+If nothing goes wrong. and you are ready to go.
+try <kbd>command</kbd> + <kbd>B</kbd> build project in Xcode.
+
+_NOTE:Markup app icon only when CONFIGURATION=Debug_
+
+__To unconfigure your project.__
+
+```shell 
+./install . noclean
+./appicon_mark.rb uninstall --project <PATH_TO_YOUR_PROJECT>/<PROJECT_NAME>.xcodeproj
+```
+
+__To remove all cache files.__
+
+```
+./install clean
+```
+
+
+---
+
+### Usage (Manual)
 
 #### 0x0 Import to project (Recommend)
 
@@ -123,11 +151,11 @@ Please make sure that the `lib` directory should be in the same directory as `ic
 ![](doc/image/icon_eg4.png)
 ![](doc/image/icon_eg5.png)
 
-__Important__ 
+__!Important__ 
 
 - Make sure your project has the `.appiconset` folder which has a `size:1024x1024` of App icon image in it.
 - The marked app icon only created in `Debug` CONFIGURATION.
-- Only support One-`Assets.xcassets`-Directory of project.
+- Only support One `.xcassets` Directory (Random selected) of project.
 
 
 ### Reference
