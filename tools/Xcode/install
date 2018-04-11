@@ -20,19 +20,28 @@ ICON_DIR_EXTENSION='appiconset'
 
 # Global ICON_MARK_BASE_DIR
 NEED_CLEAN_RUBY='true'
+
 add_rb_script ()
 {
 	cp -f "${TMP_DIR}/${ICON_MARK_BASE_DIR}/Gemfile" "${PROJECT_PATH}"
 	cp -f "${TMP_DIR}/${ICON_MARK_BASE_DIR}/appicon_mark.rb" "${PROJECT_PATH}"
 	cp -f "${TMP_DIR}/${ICON_MARK_BASE_DIR}/proj_config.rb" "${PROJECT_PATH}"
+
+	# copy command maybe failed.
+	return 0
 }
+
 remove_rb_script ()
 {
 	[[ -f "${PROJECT_PATH}/Gemfile" ]] && rm -f "${PROJECT_PATH}/Gemfile"
 	[[ -f "${PROJECT_PATH}/Gemfile.lock" ]] && rm -f "${PROJECT_PATH}/Gemfile.lock"
 	[[ -f "${PROJECT_PATH}/appicon_mark.rb" ]] && rm -f "${PROJECT_PATH}/appicon_mark.rb"
 	[[ -f "${PROJECT_PATH}/proj_config.rb" ]] && rm -f "${PROJECT_PATH}/proj_config.rb"
+
+	# test maybe failed.
+	return 0
 }
+
 check_gem ()
 {
 	local installed=''
@@ -42,6 +51,7 @@ check_gem ()
 	[[ -n "${gem_local}" ]] && installed='true'
 	echo "${installed}"
 }
+
 lookup_artwork_image ()
 {
 	local artwork_image=''
@@ -50,7 +60,6 @@ lookup_artwork_image ()
 
 	while read -r line
 	do
-		# if [[ -n $(file "${line}"|grep "120 x 120") ]]; then
 		if [[ -n $(file "${line}"|grep "1024 x 1024") ]]; then
 			artwork_image="${line}"
 			break
@@ -60,33 +69,42 @@ lookup_artwork_image ()
 }
 
 if [[ "$#" -eq 0 ]]; then 
-	# echo "ALSO CAN RUN LIKE:"
+	# echo "Also can run like:"
 	# echo "$ ${SCRIPT_FILE} [PROJECT_PATH] ['noclean']"
 	# echo "eg. '${SCRIPT_FILE} /Users/Username/Project/Demo.${XCODE_PROJECT_EXTENSION} noclean'"
 
-	# echo "CLEANUP ALL STUFF:"
-	# echo "eg. '${SCRIPT_FILE} clean'"
+	# echo "Clean current directory stuff:"
+	# echo "eg. '${SCRIPT_FILE} . clean'"
 	echo 
 else
 
 	[[ "$#" -gt 0 ]] && { project_tmp="$1"; PROJECT_PATH=${project_tmp%/*}; }
-	[[ "$#" -gt 1 ]] && [[ "$2" == 'noclean' ]] && NEED_CLEAN_RUBY=''
 
-	# Clean
-	if [[ "$#" -eq 1 && "$1" == 'clean' ]]; then
+	if [[ "$#" -gt 1 ]]; then
+		sec="$2"
+		case "${sec}" in 
+			'clean')
+				# Clean
+				PROJECT_PATH='.'
+				[[ -d "${TMP_DIR}" ]] && rm -fr "${TMP_DIR}"
+				remove_rb_script
 
-		PROJECT_PATH='.'
-		[[ -d "${TMP_DIR}" ]] && rm -fr "${TMP_DIR}"
-		remove_rb_script
+				echo "Clean files: "
+				echo "- ${TMP_DIR}"
+				echo "- ${PROJECT_PATH}/Gemfile"
+				echo "- ${PROJECT_PATH}/Gemfile.lock"
+				echo "- ${PROJECT_PATH}/appicon_mark.rb"
+				echo "- ${PROJECT_PATH}/proj_config.rb"
 
-		echo "Clean files: "
-		echo "- ${TMP_DIR}"
-		echo "- ${PROJECT_PATH}/Gemfile"
-		echo "- ${PROJECT_PATH}/Gemfile.lock"
-		echo "- ${PROJECT_PATH}/appicon_mark.rb"
-		echo "- ${PROJECT_PATH}/proj_config.rb"
-
-		exit 0
+				exit 0
+				;;
+			'noclean')
+				NEED_CLEAN_RUBY=''
+				;;
+			*)
+				echo "* param2: undefined."
+				;;
+		esac
 	fi
 fi
 
@@ -127,7 +145,7 @@ fi
 artwork_image_first=$(lookup_artwork_image "${image_first}")
 
 echo 
-echo "SCRIPT INSTALL FINISHED:"
+echo "Script and resource configure finished:"
 
 # Demo AppIcon copy.
 if [[ -z "${artwork_image_first}" ]]; then
@@ -154,6 +172,7 @@ bundler install >/dev/null 2>&1
 
 echo "./appicon_mark.rb install --project "${xcodeproj}" --target "${default_target_name}""
 ./appicon_mark.rb install --project "${xcodeproj}" --target "${default_target_name}"
+echo "---"
 
 # Ruby Part End.
 # >>>>>>>>>>

@@ -63,6 +63,9 @@ _NOTE:Markup app icon only when CONFIGURATION=Debug_
 
 #### `install` command options:
 
+> install [PATH_TO_PROJECT_DIR] ['clean'/'noclean']
+
+
 - __To unconfigure your project.__
 
 ```shell 
@@ -73,7 +76,7 @@ _NOTE:Markup app icon only when CONFIGURATION=Debug_
 - __To remove all cache files.__
 
 ```
-./install clean
+./install . clean
 ```
 
 
