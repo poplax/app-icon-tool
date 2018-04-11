@@ -48,36 +48,37 @@ __[ImageMagick](http://www.imagemagick.org/)__
 brew install imagemagick 
 ```
 
-### Auto INSTALL (Configure '.xcodeproj' automatic)
+### INSTALL (Automatic)
 
-Copy `install` script file to your project __folder__ as same as `.xcodeproj` directory, and run:
+Copy `install` script file to your project __folder__ as same as `.xcodeproj` directory, and run script:
 
 ```shell
 ./install
 ```
 
-If nothing goes wrong. and you are ready to go.
+If nothing goes wrong, you are ready to go.
 try <kbd>command</kbd> + <kbd>B</kbd> build project in Xcode.
 
 _NOTE:Markup app icon only when CONFIGURATION=Debug_
 
-__To unconfigure your project.__
+#### `install` command options:
+
+- __To unconfigure your project.__
 
 ```shell 
 ./install . noclean
 ./appicon_mark.rb uninstall --project <PATH_TO_YOUR_PROJECT>/<PROJECT_NAME>.xcodeproj
 ```
 
-__To remove all cache files.__
+- __To remove all cache files.__
 
 ```
 ./install clean
 ```
 
+### INSTALL (Manual)
 
----
-
-### Usage (Manual)
+You can ignore the following steps, if already do step `INSTALL (Automatic)` above.
 
 #### 0x0 Import to project (Recommend)
 
@@ -96,6 +97,8 @@ BE-SURE: `icon_mark`, `lib` directory, in the same level.
 
 __0x01:__
 
+`Xcode Project` -> `Target` -> `Build Phases` -> `Add 'Run Script'` -> `Edit to run script file`
+
 Edit `Run Script` content:
 
 ```shell
@@ -112,32 +115,6 @@ If `Build Phases` -> `Copy Bundle Resources` has the script files(`icon_mark`,`l
 
 ![](doc/image/icon_eg7.png)
 
----
-
-#### 0x0 Import global environment (Another usage)
-
-__0x00:__
-
-Put the script whatever you want.
-
-```
-.
-├── icon_mark
-└── lib
-    └── dev_kit.sh
-```
-
-__0x01:__
-
-Open Xcode Project.
-
-`Xcode Project` -> `Target` -> `Build Phases` -> `Add 'Run Script'` -> `Edit to run script file`
-
-![](doc/image/icon_eg3.png)
-
-__Note:__ Script path(Absolute path recommend) : `<Dir-Path-To>/icon_mark`
-
-Please make sure that the `lib` directory should be in the same directory as `icon_mark` file.
 
 ---
 
