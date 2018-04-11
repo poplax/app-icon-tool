@@ -32,7 +32,7 @@ _test passed_
 
 #### Install
 
-If you not install `brew`, flow step below to install(or ignore):
+If you do not have `brew` installed, follow these steps to install
 
 __[Homebrew](https://brew.sh/)__
 
@@ -40,13 +40,13 @@ __[Homebrew](https://brew.sh/)__
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 ```
 
----
-
 __[ImageMagick](http://www.imagemagick.org/)__ 
 
 ```shell
 brew install imagemagick 
 ```
+
+--- 
 
 ### INSTALL (Automatic)
 
@@ -76,15 +76,18 @@ _NOTE:Markup app icon only when CONFIGURATION=Debug_
 ./install clean
 ```
 
+
+--- 
+
 ### INSTALL (Manual)
 
 You can ignore the following steps, if already do step `INSTALL (Automatic)` above.
 
-#### 0x0 Import to project (Recommend)
+#### 1. Import to project
 
 Add tool to your project
 
-__0x00:__
+__1.1:__
 
 Add __2 files__ to the project(with copy).
 
@@ -95,7 +98,7 @@ BE-SURE: `icon_mark`, `lib` directory, in the same level.
 
 ![](doc/image/icon_eg6.png)
 
-__0x01:__
+__1.2:__
 
 `Xcode Project` -> `Target` -> `Build Phases` -> `Add 'Run Script'` -> `Edit to run script file`
 
@@ -109,16 +112,13 @@ Edit `Run Script` content:
 
 In this demo project use : `"${PROJECT_DIR}/${PROJECT_NAME}/Script/icon_mark`
 
-__0x02:__
+__1.3:__
 
 If `Build Phases` -> `Copy Bundle Resources` has the script files(`icon_mark`,`lib/dev_kit.sh`), and remove them.
 
 ![](doc/image/icon_eg7.png)
 
-
----
-
-#### 0x1 Run And Setup.
+#### 2. Run And Setup (Manual Only)
 
 1. First `Build` your project; if success, `AppIcon-Dev` was generated in the `.xcassets` folder.
 2.  Set project -> target -> General -> App Icons and Launch Images -> App Icons Source to `AppIcon-Dev` 
@@ -128,23 +128,24 @@ If `Build Phases` -> `Copy Bundle Resources` has the script files(`icon_mark`,`l
 ![](doc/image/icon_eg4.png)
 ![](doc/image/icon_eg5.png)
 
+---
+
 __!Important__ 
 
 - Make sure your project has the `.appiconset` folder which has a `size:1024x1024` of App icon image in it.
 - The marked app icon only created in `Debug` CONFIGURATION.
-- Only support One `.xcassets` Directory (Random selected) of project.
+- Only support One `.xcassets` Directory (Random selected) of the project.
 
 
 ### Reference
 
 - [iconVersion](https://github.com/krzysztofzablocki/IconOverlaying/blob/master/Scripts/iconVersioning.sh)
 
-### LICENSE
-
-__MIT__
-
-
 ## Related tools
 
 - [App Icon Fitter](https://github.com/poplax/app-icon-fitter)
 - [AppInfo Icon Marker](https://github.com/poplax/app-icon-fitter/blob/master/tools/Xcode)
+
+### LICENSE
+
+__MIT__
