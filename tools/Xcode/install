@@ -65,7 +65,7 @@ lookup_artwork_image ()
 			break
 		fi
 	done <<< "$(find "${asset_dir}" -type f -name "*.png")"
-	echo ${artwork_image}
+	echo "${artwork_image}"
 }
 
 if [[ "$#" -eq 0 ]]; then 
@@ -167,8 +167,9 @@ default_target_name="$(basename ${xcodeproj%.*})"
 # Command line.
 
 add_rb_script
-[[ -z "$(check_gem "bundler")" ]]  && gem install bundler
-bundler install >/dev/null 2>&1
+[[ -z "$(check_gem "bundler")" ]] && gem install bundler
+# bundle install >/dev/null 2>&1
+bundle install
 
 echo "./appicon_mark.rb install --project "${xcodeproj}" --target "${default_target_name}""
 ./appicon_mark.rb install --project "${xcodeproj}" --target "${default_target_name}"
