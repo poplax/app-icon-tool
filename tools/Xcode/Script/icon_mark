@@ -163,7 +163,13 @@ main() {
     if [[ "$#" -ge 2 ]]; then
         info_plist_path="$2"
     else
-        info_plist_path="${CONFIGURATION_BUILD_DIR}/${INFOPLIST_PATH}"
+        info_plist_path="${PROJECT_DIR}/${INFOPLIST_FILE}"
+
+        [[ ! -f "${info_plist_path}" ]] && {
+            err "plist file Default path : ${info_plist_path}"
+            err "It's not exist, plist check, and configure it."
+            return 0
+        }
     fi
     message "plist file --- : ${info_plist_path}"
 
