@@ -168,8 +168,7 @@ default_target_name="$(basename ${xcodeproj%.*})"
 
 add_rb_script
 [[ -z "$(check_gem "bundler")" ]] && gem install bundler
-# bundle install >/dev/null 2>&1
-bundle install
+bundle install >/dev/null 2>&1
 
 echo "./appicon_mark.rb install --project "${xcodeproj}" --target "${default_target_name}""
 ./appicon_mark.rb install --project "${xcodeproj}" --target "${default_target_name}"
